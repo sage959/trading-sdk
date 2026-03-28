@@ -17,7 +17,7 @@ instrument listing, order placement, trade execution, and portfolio tracking.
 - Fetch portfolio holdings
 - In-memory data storage
 
-## Setup Instructions
+## Setup Instructions:
 
 1. Install dependencies
    pip install fastapi uvicorn pydantic
