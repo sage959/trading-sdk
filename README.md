@@ -2,7 +2,7 @@
 
 A simulated stock trading backend that mimics core broker functionalities — instrument listing, order placement, trade execution, and portfolio tracking — with a clean dashboard UI.
 
-🌐 **Live:** [https://trading-sdk.onrender.com](https://trading-sdk.onrender.com)
+🌐 **Live:** https://trading-sdk.onrender.com
 
 > ⚠️ Hosted on Render free tier — first request after inactivity may take ~50 seconds.
 
@@ -47,9 +47,9 @@ A simulated stock trading backend that mimics core broker functionalities — in
    ```
 
 3. **Open in browser**
-http://127.0.0.1:8000
-
-text
+   ```
+   http://127.0.0.1:8000
+   ```
 
 ---
 
