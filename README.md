@@ -1,24 +1,22 @@
-# 📈 Trading SDK
+# Trading SDK
 
-> A simulated stock trading backend that mimics core broker functionalities — instrument listing, order placement, trade execution, and portfolio tracking — with a clean dashboard UI.
+A simulated stock trading backend that mimics core broker functionalities such as
+instrument listing, order placement, trade execution, and portfolio tracking.
 
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat&logo=fastapi&logoColor=white)
-![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=flat&logo=render&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Live-brightgreen?style=flat)
-
-🌐 **Live Demo:** [https://trading-sdk.onrender.com](https://trading-sdk.onrender.com)
+🌐 Live: https://trading-sdk.onrender.com
 
 > ⚠️ Hosted on Render free tier — first request after inactivity may take ~50 seconds.
 
----
-
 ![Trading SDK Dashboard](assets/screenshot.png)
 
----
+## Tech
+- Python
+- FastAPI
+- Uvicorn
+- Pydantic
+- HTML / CSS / JS (Vanilla)
 
-## ✨ Features
-
+## Features
 - Browse 10 tradable instruments (NSE + NASDAQ)
 - Place BUY / SELL orders (MARKET & LIMIT)
 - Track order status with pagination
@@ -27,50 +25,35 @@
 - Interactive price chart per stock
 - In-memory data storage
 
-## 🛠 Tech Stack
+## Setup
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | Python, FastAPI, Uvicorn |
-| Validation | Pydantic |
-| Frontend | HTML, CSS, Vanilla JS |
-| Hosting | Render |
-
-## 🚀 Setup (Local)
-
-**1. Install dependencies**
-```bash
+1. Install dependencies
 pip install fastapi uvicorn pydantic
-```
 
-**2. Run the server**
-```bash
+text
+
+2. Run the server
 uvicorn app.main:app --reload
-```
 
-**3. Open in browser**
+text
+
+3. Open in browser
 http://127.0.0.1:8000
 
 text
 
-## 📡 API Endpoints
+## API Endpoints
+- GET /api/v1/instruments
+- POST /api/v1/orders
+- GET /api/v1/orders
+- GET /api/v1/orders/{orderId}
+- GET /api/v1/trades
+- GET /api/v1/portfolio
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/v1/instruments` | List all stocks |
-| `POST` | `/api/v1/orders` | Place an order |
-| `GET` | `/api/v1/orders` | Get all orders |
-| `GET` | `/api/v1/orders/{orderId}` | Get order by ID |
-| `GET` | `/api/v1/trades` | View all trades |
-| `GET` | `/api/v1/portfolio` | View holdings |
-
-## 📝 Assumptions
-
+## Assumptions
 - Single hardcoded user
 - Market orders execute immediately
 - No real market connectivity
-- In-memory storage — resets on restart
+- In-memory storage only
 
----
-
-<p align="center">Made with ❤️ by <a href="https://www.instagram.com/dev7kalra/">Dev</a> and <a href="https://www.instagram.com/siddharthh_959/">Siddharth</a></p>
+Made with ❤️ by [Dev](https://www.instagram.com/dev7kalra/) and [Siddharth](https://www.instagram.com/siddharthh_959/)
