@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trading SDK</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+
+    nav { background: #ffffff; padding: 16px 30px; border-bottom: 1px solid #e2e8f0;
+      display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    nav .logo { font-weight: 800; font-size: 20px; color: #6366f1; margin-right: 10px; }
+    nav .tagline { font-size: 13px; color: #94a3b8; }
+
+    .main-layout { display: grid; grid-template-columns: 1fr 30%; gap: 20px; padding: 24px 30px; flex: 1; }
+
+    /* LEFT SIDE */
+    .left-col { display: flex; flex-direction: column; gap: 20px; }
+
+    /* CHART CARD */
+    .card { background: white; border-radius: 16px; padding: 22px; border: 1px solid #e2e8f0; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+    .card h3 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; margin-bottom: 14px; }
+
+    .stock-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .stock-tab { padding: 7px 14px; border-radius: 20px; border: 1px solid #e2e8f0;
+      cursor: pointer; font-size: 13px; background: #f8fafc; color: #64748b; transition: all 0.2s; }
+    .stock-tab:hover { border-color: #a5b4fc; color: #6366f1; }
+    .stock-tab.active { background: #eef2ff; color: #6366f1; border-color: #a5b4fc; font-weight: 600; }
+
+    .price-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+    .price-row h2 { font-size: 28px; font-weight: 800; color: #1e293b; }
+    .price-change { font-size: 13px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+    .price-change.pos { background: #dcfce7; color: #16a34a; }
+    .price-change.neg { background: #fee2e2; color: #dc2626; }
+
+    /* ORDER FORM */
+    .toggle { display: flex; background: #f1f5f9; border-radius: 10px; padding: 4px; margin-bottom: 16px; }
+    .toggle button { flex: 1; padding: 9px; border: none; border-radius: 8px;
+      cursor: pointer; font-size: 14px; font-weight: 600; background: none; color: #94a3b8; transition: all 0.2s; }
+    .toggle button.buy.active { background: #bbf7d0; color: #15803d; }
+    .toggle button.sell.active { background: #fecaca; color: #dc2626; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px; font-weight: 500; }
+    select, input[type=number] { width: 100%; padding: 9px 12px; border: 1px solid #e2e8f0;
+      border-radius: 10px; font-size: 14px; background: #f8fafc; color: #1e293b; outline: none; transition: border 0.2s; }
+    select:focus, input:focus { border-color: #a5b4fc; }
+
+    .margin-row { display: flex; justify-content: space-between; font-size: 13px;
+      color: #94a3b8; margin-bottom: 16px; padding: 10px 14px; background: #f8fafc; border-radius: 10px; }
+    .margin-row span:last-child { font-weight: 700; color: #6366f1; }
+
+    .btn-action { width: 100%; padding: 13px; border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
+    .btn-action.buy { background: linear-gradient(135deg, #86efac, #4ade80); color: #14532d; }
+    .btn-action.buy:hover { background: linear-gradient(135deg, #4ade80, #22c55e); }
+    .btn-action.sell { background: linear-gradient(135deg, #fca5a5, #f87171); color: #7f1d1d; }
+    .btn-action.sell:hover { background: linear-gradient(135deg, #f87171, #ef4444); }
+
+    #order-msg { margin-top: 10px; font-size: 13px; text-align: center; min-height: 18px; color: #16a34a; }
+    #limit-price-row { display: none; }
+
+    /* RIGHT SIDE */
+    .right-col { display: flex; flex-direction: column; gap: 20px; }
+
+    /* PORTFOLIO */
+    .holding-item { display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+    .holding-item:last-child { border-bottom: none; }
+    .holding-symbol { font-weight: 700; font-size: 15px; color: #1e293b; }
+    .holding-qty { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+    .holding-value { text-align: right; }
+    .holding-value .val { font-weight: 700; font-size: 15px; color: #6366f1; }
+    .holding-value .avg { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .empty-state { text-align: center; padding: 30px 0; color: #cbd5e1; font-size: 14px; }
+
+    /* ORDERS */
+    .orders-list { display: flex; flex-direction: column; gap: 0; }
+    .order-row { display: flex; justify-content: space-between; align-items: center;
+      padding: 11px 0; border-bottom: 1px solid #f1f5f9; }
+    .order-row:last-child { border-bottom: none; }
+    .order-left .sym { font-weight: 700; font-size: 14px; color: #1e293b; }
+    .order-left .meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .order-right { text-align: right; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge.buy { background: #dcfce7; color: #16a34a; }
+    .badge.sell { background: #fee2e2; color: #dc2626; }
+    .badge.executed { background: #e0f2fe; color: #0369a1; }
+    .badge.placed { background: #fef9c3; color: #92400e; }
+
+    .pagination { display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
+    .pagination button { padding: 5px 10px; border: 1px solid #e2e8f0; border-radius: 8px;
+      background: white; cursor: pointer; font-size: 12px; color: #64748b; }
+    .pagination button.active { background: #eef2ff; color: #6366f1; border-color: #a5b4fc; font-weight: 700; }
+
+    /* FOOTER */
+    footer { text-align: center; padding: 18px; font-size: 13px; color: #94a3b8;
+      border-top: 1px solid #e2e8f0; background: white; margin-top: auto; }
+    footer a { color: #6366f1; text-decoration: none; font-weight: 600; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">📈 Trading SDK</span>
+  <span class="tagline">Simulated stock trading backend</span>
+</nav>
+
+<div class="main-layout">
+
+  <!-- LEFT COLUMN -->
+  <div class="left-col">
+
+    <!-- Chart -->
+    <div class="card">
+      <h3>Market</h3>
+      <div class="stock-tabs" id="stock-tabs"></div>
+      <div class="price-row">
+        <h2 id="current-price">--</h2>
+        <span class="price-change pos" id="price-change">--</span>
+      </div>
+      <canvas id="priceChart" height="80"></canvas>
+    </div>
+
+    <!-- Order Form -->
+    <div class="card">
+      <h3>Place Order — <span id="order-symbol-label" style="color:#6366f1;">Select a stock</span></h3>
+      <div class="toggle">
+        <button class="buy active" id="btn-buy" onclick="setAction('BUY')">BUY</button>
+        <button class="sell" id="btn-sell" onclick="setAction('SELL')">SELL</button>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Order Type</label>
+          <select id="orderStyle" onchange="toggleLimitPrice()">
+            <option value="MARKET">Market</option>
+            <option value="LIMIT">Limit</option>
+          </select>
+        </div>
+        <div>
+          <label>Quantity</label>
+          <input type="number" id="quantity" value="1" min="1" />
+        </div>
+      </div>
+      <div id="limit-price-row">
+        <label>Limit Price (₹)</label>
+        <input type="number" id="limitPrice" placeholder="Enter limit price" style="margin-bottom:14px;" />
+      </div>
+      <div class="margin-row">
+        <span>Available Margin</span>
+        <span>₹15,000.00</span>
+      </div>
+      <button class="btn-action buy" id="action-btn" onclick="placeOrder()">REVIEW BUY</button>
+      <div id="order-msg"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col">
+
+    <!-- Portfolio -->
+    <div class="card">
+      <h3>Portfolio</h3>
+      <div id="portfolio-list"><div class="empty-state">No holdings yet</div></div>
+    </div>
+
+    <!-- Orders -->
+    <div class="card">
+      <h3>Recent Orders</h3>
+      <div class="orders-list" id="orders-list"><div class="empty-state">No orders yet</div></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  Made with ❤️ by <a href="https://github.com/Droi-D" target="_blank">Dev</a> and <a href="https://github.com/sage959" target="_blank">Siddharth</a>
+</footer>
+
+<script>
+  let selectedSymbol = "";
+  let selectedAction = "BUY";
+  let priceChart = null;
+  let allOrders = [];
+  let currentPage = 1;
+  const PER_PAGE = 5;
+
+  function setAction(action) {
+    selectedAction = action;
+    document.getElementById('btn-buy').classList.toggle('active', action === 'BUY');
+    document.getElementById('btn-sell').classList.toggle('active', action === 'SELL');
+    const btn = document.getElementById('action-btn');
+    btn.textContent = `REVIEW ${action}`;
+    btn.className = `btn-action ${action.toLowerCase()}`;
+  }
+
+  function toggleLimitPrice() {
+    document.getElementById('limit-price-row').style.display =
+      document.getElementById('orderStyle').value === 'LIMIT' ? 'block' : 'none';
+  }
+
+  function genPriceData(base) {
+    let p = base * 0.97;
+    return Array.from({length: 30}, () => {
+      p += (Math.random() - 0.47) * base * 0.012;
+      return parseFloat(p.toFixed(2));
+    });
+  }
+
+  function selectStock(symbol, price) {
+    selectedSymbol = symbol;
+    document.getElementById('order-symbol-label').textContent = symbol;
+    document.querySelectorAll('.stock-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.symbol === symbol));
+
+    const data = genPriceData(price);
+    const last = data[data.length - 1];
+    const change = ((last - data[0]) / data[0] * 100).toFixed(2);
+    const isPos = change >= 0;
+
+    document.getElementById('current-price').textContent = `₹${last.toFixed(2)}`;
+    const pc = document.getElementById('price-change');
+    pc.textContent = `${isPos ? '+' : ''}${change}%`;
+    pc.className = `price-change ${isPos ? 'pos' : 'neg'}`;
+
+    if (priceChart) priceChart.destroy();
+    priceChart = new Chart(document.getElementById('priceChart'), {
+      type: 'line',
+      data: {
+        labels: data.map((_, i) => i),
+        datasets: [{
+          data,
+          borderColor: isPos ? '#4ade80' : '#f87171',
+          backgroundColor: isPos ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
+          fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { display: false },
+          y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, color: '#94a3b8' } }
+        }
+      }
+    });
+  }
+
+  async function loadInstruments() {
+    const data = await fetch('/api/v1/instruments').then(r => r.json());
+    const tabs = document.getElementById('stock-tabs');
+    data.forEach(i => {
+      const btn = document.createElement('button');
+      btn.className = 'stock-tab';
+      btn.dataset.symbol = i.symbol;
+      btn.textContent = i.symbol;
+      btn.onclick = () => selectStock(i.symbol, i.lastTradedPrice);
+      tabs.appendChild(btn);
+    });
+    if (data.length) selectStock(data[0].symbol, data[0].lastTradedPrice);
+  }
+
+  async function placeOrder() {
+    const msg = document.getElementById('order-msg');
+    if (!selectedSymbol) { msg.style.color = '#ef4444'; msg.textContent = 'Please select a stock first.'; return; }
+    const qty = parseInt(document.getElementById('quantity').value);
+    const style = document.getElementById('orderStyle').value;
+    const price = style === 'LIMIT' ? parseFloat(document.getElementById('limitPrice').value) : null;
+    msg.style.color = '#94a3b8'; msg.textContent = 'Placing order...';
+    const body = { symbol: selectedSymbol, quantity: qty, orderStyle: style, action: selectedAction };
+    if (price) body.price = price;
+    const res = await fetch('/api/v1/orders', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    }).then(r => r.json());
+    msg.style.color = '#16a34a';
+    msg.textContent = `✅ ${res.status} — Order ID: ${res.orderId.slice(0, 8)}...`;
+    loadOrders();
+    loadPortfolio();
+  }
+
+  async function loadPortfolio() {
+    const data = await fetch('/api/v1/portfolio').then(r => r.json());
+    const el = document.getElementById('portfolio-list');
+    if (!data.length) { el.innerHTML = '<div class="empty-state">No holdings yet</div>'; return; }
+    el.innerHTML = data.map(p => `
+      <div class="holding-item">
+        <div>
+          <div class="holding-symbol">${p.symbol}</div>
+          <div class="holding-qty">${p.quantity} shares</div>
+        </div>
+        <div class="holding-value">
+          <div class="val">₹${p.currentValue.toFixed(2)}</div>
+          <div class="avg">avg ₹${p.averagePrice}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  async function loadOrders() {
+    allOrders = await fetch('/api/v1/orders').then(r => r.json());
+    allOrders.reverse();
+    renderOrders();
+  }
+
+  function renderOrders() {
+    const el = document.getElementById('orders-list');
+    const pg = document.getElementById('pagination');
+    if (!allOrders.length) { el.innerHTML = '<div class="empty-state">No orders yet</div>'; pg.innerHTML = ''; return; }
+    const start = (currentPage - 1) * PER_PAGE;
+    const slice = allOrders.slice(start, start + PER_PAGE);
+    el.innerHTML = slice.map(o => `
+      <div class="order-row">
+        <div class="order-left">
+          <div class="sym">${o.symbol}</div>
+          <div class="meta">${o.orderStyle} · qty ${o.quantity}</div>
+        </div>
+        <div class="order-right">
+          <span class="badge ${(o.action || 'BUY').toLowerCase()}">${o.action || 'BUY'}</span>
+          <span class="badge ${o.status === 'EXECUTED' ? 'executed' : 'placed'}">${o.status}</span>
+        </div>
+      </div>`).join('');
+
+    const totalPages = Math.ceil(allOrders.length / PER_PAGE);
+    pg.innerHTML = Array.from({length: totalPages}, (_, i) => `
+      <button class="${i + 1 === currentPage ? 'active' : ''}" onclick="goPage(${i + 1})">${i + 1}</button>
+    `).join('');
+  }
+
+  function goPage(n) { currentPage = n; renderOrders(); }
+
+  loadInstruments();
+  loadPortfolio();
+  loadOrders();
+</script>
+</body>
+</html>
